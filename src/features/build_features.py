@@ -77,6 +77,23 @@ def preprocess_data(data, preprocessors):
     return features
 
 
+def concatenate_features(features):
+    """Concatenate feature spaces
+
+    Parameters
+    ----------
+    features : list of np.ndarray
+
+    Returns
+    -------
+    An array of features with shape (number of samples, number of features)
+    """
+    concatenator = ConcatenateFeatures()
+    _ = concatenator.fit(features)
+    X = concatenator.transform(features)
+    return X
+
+
 class ConcatenateFeatures():
     """Translate between individual and concatenated feature spaces
     """
@@ -152,15 +169,14 @@ def main():
     train_values, train_labels = load_train_data()
     preprocessors = build_preprocessors(train_values)
     train_features = preprocess_data(train_values, preprocessors)
-    concatenator = ConcatenateFeatures()
+
+    X = concatenate_features(train_features)
 
     preprocessor_path = op.join(project_directory, 'models',
                                 'preprocessors.joblib')
     with open(preprocessor_path, 'wb') as f:
         joblib.dump(preprocessors, f)
 
-    _ = concatenator.fit(train_features, names=train_values.columns)
-    X = concatenator.transform(train_features)
     np.save(op.join(processed_data_directory, 'X_train.npy'), X)
     np.save(op.join(processed_data_directory, 'y_train.npy'),
             train_labels.values.ravel())
