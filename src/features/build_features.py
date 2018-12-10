@@ -1,13 +1,19 @@
 """Build features from raw data
 """
 import os.path as op
+import logging
+import joblib
 import numpy as np
+import pandas as pd
 from sklearn import pipeline
 from sklearn import preprocessing
 
 
 np.set_printoptions(precision=4, suppress=True)
 
+project_directory = op.join(op.dirname(__file__), op.pardir, op.pardir)
+raw_data_directory = op.join(project_directory, 'data', 'raw')
+processed_data_directory = op.join(project_directory, 'data', 'processed')
 feature_types = {'continuous': ['resting_blood_pressure', 'serum_cholesterol_mg_per_dl',
                                 'oldpeak_eq_st_depression', 'age', 'max_heart_rate_achieved'],
                  'ordinal': ['slope_of_peak_exercise_st_segment', 'num_major_vessels',
@@ -115,3 +121,53 @@ class ConcatenateFeatures():
         """Split a feature array into a list of individual feature spaces
         """
         return np.array_split(features, self._feature_splits, axis=1)
+
+
+def load_train_data():
+    """Load the training datasets
+
+    Returns
+    -------
+    train_values : pandas.core.frame.DataFrame
+        A dataframe of training input variables
+    train_labels : pandas.core.frame.DataFrame
+        A dataframe of training output variables (i.e., targets)
+    """
+    path = op.join(raw_data_directory, 'train_values.csv')
+    train_values = pd.read_csv(path, index_col='patient_id')
+
+    path = op.join(raw_data_directory, 'train_labels.csv')
+    train_labels = pd.read_csv(path, index_col='patient_id')
+
+    return train_values, train_labels
+
+
+def main():
+    """ Runs data processing scripts to turn raw data from (../raw) into
+        cleaned data ready to be analyzed (saved in ../processed).
+    """
+    logger = logging.getLogger(__name__)
+    logger.info('making final data set from raw data')
+
+    train_values, train_labels = load_train_data()
+    preprocessors = build_preprocessors(train_values)
+    train_features = preprocess_data(train_values, preprocessors)
+    concatenator = ConcatenateFeatures()
+
+    preprocessor_path = op.join(project_directory, 'models',
+                                'preprocessors.joblib')
+    with open(preprocessor_path, 'wb') as f:
+        joblib.dump(preprocessors, f)
+
+    _ = concatenator.fit(train_features, names=train_values.columns)
+    X = concatenator.transform(train_features)
+    np.save(op.join(processed_data_directory, 'X_train.npy'), X)
+    np.save(op.join(processed_data_directory, 'y_train.npy'),
+            train_labels.values.ravel())
+
+
+if __name__ == '__main__':
+    log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    logging.basicConfig(level=logging.INFO, format=log_fmt)
+
+    main()

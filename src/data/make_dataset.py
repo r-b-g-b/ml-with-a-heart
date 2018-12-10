@@ -1,37 +1,27 @@
 # -*- coding: utf-8 -*-
 import os.path as op
-import click
 import logging
-import numpy as np
-import joblib
-from .. import config
-from ..data import load
-from ..features import build_features
+import urllib.request
+
+
+DATA_URIS = {'train_values': 'https://s3.amazonaws.com/drivendata/data/54/public/train_values.csv',
+             'train_labels': 'https://s3.amazonaws.com/drivendata/data/54/public/train_labels.csv',
+             'test_values': 'https://s3.amazonaws.com/drivendata/data/54/public/test_values.csv'}
+
+project_directory = op.join(op.dirname(__file__), op.pardir, op.pardir)
+raw_data_directory = op.join(project_directory, 'data', 'raw')
+
+
+def download_data():
+    """Download data to local disk
+    """
+    for name, uri in DATA_URIS.items():
+        path = op.join(raw_data_directory, name + '.csv')
+        urllib.request.urlretrieve(uri, path)
+
 
 def main():
-    """ Runs data processing scripts to turn raw data from (../raw) into
-        cleaned data ready to be analyzed (saved in ../processed).
-    """
-    logger = logging.getLogger(__name__)
-    logger.info('making final data set from raw data')
-    logger.info(config.data_directory)
-
-    train_values, train_labels = load.load_train_data()
-    preprocessors = build_features.build_preprocessors(train_values)
-    train_features = build_features.preprocess_data(train_values, preprocessors)
-    concatenator = build_features.ConcatenateFeatures()
-
-    preprocessor_path = op.join(config.project_directory, 'models',
-                                'preprocessors.joblib')
-    with open(preprocessor_path, 'wb') as f:
-        joblib.dump(preprocessors, f)
-
-    _ = concatenator.fit(train_features, names=train_values.columns)
-    X = concatenator.transform(train_features)
-    np.save(op.join(config.data_directory, 'processed', 'X_train.npy'), X)
-    np.save(op.join(config.data_directory, 'processed', 'y_train.npy'),
-            train_labels.values.ravel())
-
+    download_data()
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

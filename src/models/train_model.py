@@ -4,7 +4,10 @@ import logging
 import joblib
 import numpy as np
 from sklearn import linear_model
-from .. import config
+
+
+project_directory = op.join(op.dirname(__file__), op.pardir, op.pardir)
+processed_data_directory = op.join(project_directory, 'data', 'processed')
 
 
 def main():
@@ -16,14 +19,14 @@ def main():
     logistic_regression = linear_model.LogisticRegressionCV(Cs=Cs, cv=5,
                                                             solver='lbfgs')
     logger.info('loading training data')
-    X = np.load(op.join(config.data_directory, 'processed', 'X_train.npy'))
-    y = np.load(op.join(config.data_directory, 'processed', 'y_train.npy'))
+    X = np.load(op.join(processed_data_directory, 'X_train.npy'))
+    y = np.load(op.join(processed_data_directory, 'y_train.npy'))
 
     logger.info('training the model')
     _ = logistic_regression.fit(X, y)
 
     logger.info('saving the model')
-    model_path = op.join(config.project_directory, 'models',
+    model_path = op.join(project_directory, 'models',
                          'classifier.joblib')
     with open(model_path, 'wb') as f:
         joblib.dump(logistic_regression, f)
