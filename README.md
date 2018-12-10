@@ -71,8 +71,7 @@ r = requests.post(url, json=json.dumps(data))
 pprint(json.loads(r.text))
 
 {'prediction': [0, 1],
- 'probability': [[0.5819, 0.4180],
-                 [0.3581, 0.6418]]}
+ 'probability': [0.5819, 0.3581]}
 ```
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
