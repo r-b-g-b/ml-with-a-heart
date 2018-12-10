@@ -3,55 +3,55 @@ ML with a heart
 
 Submission for DrivenData challenge: Machine Learning with a Heart
 
-Project Organization
-------------
 
-    ├── LICENSE
-    ├── Makefile           <- Makefile with commands like `make data` or `make train`
-    ├── README.md          <- The top-level README for developers using this project.
-    ├── data
-    │   ├── external       <- Data from third party sources.
-    │   ├── interim        <- Intermediate data that has been transformed.
-    │   ├── processed      <- The final, canonical data sets for modeling.
-    │   └── raw            <- The original, immutable data dump.
-    │
-    ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
-    │
-    ├── models             <- Trained and serialized models, model predictions, or model summaries
-    │
-    ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-    │                         the creator's initials, and a short `-` delimited description, e.g.
-    │                         `1.0-jqp-initial-data-exploration`.
-    │
-    ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
-    │
-    ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-    │   └── figures        <- Generated graphics and figures to be used in reporting
-    │
-    ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-    │                         generated with `pip freeze > requirements.txt`
-    │
-    ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
-    ├── src                <- Source code for use in this project.
-    │   ├── __init__.py    <- Makes src a Python module
-    │   │
-    │   ├── data           <- Scripts to download or generate data
-    │   │   └── make_dataset.py
-    │   │
-    │   ├── features       <- Scripts to turn raw data into features for modeling
-    │   │   └── build_features.py
-    │   │
-    │   ├── models         <- Scripts to train models and then use trained models to make
-    │   │   │                 predictions
-    │   │   ├── predict_model.py
-    │   │   └── train_model.py
-    │   │
-    │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
-    │       └── visualize.py
-    │
-    └── tox.ini            <- tox file with settings for running tox; see tox.testrun.org
+Training the model
+----------------------
+
+Cookiecutter uses ``make`` to make it simple to run computations with lots of dependencies. This means you can train the model using only three commands:
 
 
---------
+.. code-block:: bash
+
+    # prepare the environment
+    make create_environment
+    conda activate ml_with_a_heart
+
+    # download and preprocess the data, then train the model
+    make train
+
+
+There is a simple API for the model at http://gentle-brushlands-69278.herokuapp.com/predict. Feel free to test it out by sending POST requests of form:
+
+
+.. code-block:: python
+
+    import json
+    import requests
+    import numpy as np
+
+
+    host = 'gentle-brushlands-69278.herokuapp.com'
+
+    url = f'http://{host}/predict'
+
+    data = [{'patient_id': 'patient-0',
+             'slope_of_peak_exercise_st_segment': 1,
+             'thal': 'normal',
+             'resting_blood_pressure': 128,
+             'chest_pain_type': 2,
+             'num_major_vessels': 0,
+             'fasting_blood_sugar_gt_120_mg_per_dl': 0,
+             'resting_ekg_results': 2,
+             'serum_cholesterol_mg_per_dl': 308,
+             'oldpeak_eq_st_depression': 0.0,
+             'sex': 1,
+             'age': 45,
+             'max_heart_rate_achieved': 170,
+             'exercise_induced_angina': 0}]
+
+    r = requests.post(url, json=json.dumps(data))
+
+    print(json.loads(r.text))
+
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
